@@ -1,10 +1,7 @@
-"""
-Test API endpoints
-"""
+from fastapi import FastAPI
 
-import yfinance as yf
+app = FastAPI()
 
-# Download data for Apple
-aapl = yf.Ticker("AAPL")
-print(aapl.info)  # Company info
-print(aapl.history(period="1mo"))  # Price data
+@app.get("/")
+def read_root():
+    return {"Hello": "World"}

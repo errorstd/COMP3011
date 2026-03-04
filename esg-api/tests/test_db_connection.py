@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:YourPassword@localhost:5432/esg_investment_db")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:548654@localhost:5432/esg_investment_db")
 
 try:
     engine = create_engine(DATABASE_URL)

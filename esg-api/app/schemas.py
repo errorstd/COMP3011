@@ -15,7 +15,7 @@ class CompanyBase(BaseModel):
     name: str = Field(..., max_length=255, description="Company name")
     sector: Optional[str] = Field(None, max_length=100)
     industry: Optional[str] = Field(None, max_length=100)
-    market_cap: Optional[int] = Field(None, description="Market capitalization in USD")
+    market_cap: Optional[int] = Field(None, description="Market cap in USD")
 
 class CompanyCreate(CompanyBase):
     pass
@@ -31,7 +31,7 @@ class Company(CompanyBase):
     created_at: datetime
     
     class Config:
-        orm_mode = True
+        from_attributes = True  # Updated for Pydantic v2
 
 # ============================================================================
 # ESG SCORE SCHEMAS
@@ -51,7 +51,7 @@ class ESGScoreResponse(ESGScoreBase):
     company_id: int
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # ============================================================================
 # FINANCIAL METRIC SCHEMAS
@@ -70,7 +70,7 @@ class FinancialMetricResponse(FinancialMetricBase):
     company_id: int
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # ============================================================================
 # COMPANY DETAIL (with relationships)
@@ -81,4 +81,4 @@ class CompanyDetail(Company):
     financial_metrics: List[FinancialMetricResponse] = []
     
     class Config:
-        orm_mode = True
+        from_attributes = True

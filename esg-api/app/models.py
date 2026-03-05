@@ -4,10 +4,10 @@ Defines the structure of all database tables
 """
 
 from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, BigInteger, DateTime
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import declarative_base, relationship
 from datetime import datetime
 
+# Create Base class (only once!)
 Base = declarative_base()
 
 class Company(Base):

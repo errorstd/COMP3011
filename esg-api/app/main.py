@@ -7,7 +7,7 @@ from fastapi import FastAPI, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc
 from typing import List, Optional
-from datetime import date, timedelta
+from datetime import date
 
 from app.database import get_db
 from app import models, schemas
@@ -17,8 +17,8 @@ app = FastAPI(
     title="ESG Investment Insight KPI API",
     description="Data-driven API for ESG metrics and investment analytics",
     version="1.0.0",
-    docs_url="/docs",  # Swagger UI
-    redoc_url="/redoc"  # ReDoc UI
+    docs_url="/docs",
+    redoc_url="/redoc"
 )
 
 # ============================================================================
@@ -42,15 +42,23 @@ def root():
 @app.post("/companies/", response_model=schemas.Company, tags=["Companies"])
 def create_company(company: schemas.CompanyCreate, db: Session = Depends(get_db)):
     """Create a new company"""
-    # Check if company already exists
     existing = db.query(models.Company).filter(
-        models.Company.symbol == company.symbol
+        models.Company.symbol == company.symbol.upper()
     ).first()
     
     if existing:
-        raise HTTPException(status_code=400, detail=f"Company {company.symbol} already exists")
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Company {company.symbol} already exists"
+        )
     
-    db_company = models.Company(**company.dict())
+    db_company = models.Company(
+        symbol=company.symbol.upper(),
+        name=company.name,
+        sector=company.sector,
+        industry=company.industry,
+        market_cap=company.market_cap
+    )
     db.add(db_company)
     db.commit()
     db.refresh(db_company)
@@ -80,7 +88,10 @@ def get_company(symbol: str, db: Session = Depends(get_db)):
     ).first()
     
     if not company:
-        raise HTTPException(status_code=404, detail=f"Company {symbol} not found")
+        raise HTTPException(
+            status_code=404, 
+            detail=f"Company {symbol} not found"
+        )
     
     return company
 
@@ -96,9 +107,11 @@ def update_company(
     ).first()
     
     if not db_company:
-        raise HTTPException(status_code=404, detail=f"Company {symbol} not found")
+        raise HTTPException(
+            status_code=404, 
+            detail=f"Company {symbol} not found"
+        )
     
-    # Update only provided fields
     for key, value in company_update.dict(exclude_unset=True).items():
         setattr(db_company, key, value)
     
@@ -114,7 +127,10 @@ def delete_company(symbol: str, db: Session = Depends(get_db)):
     ).first()
     
     if not db_company:
-        raise HTTPException(status_code=404, detail=f"Company {symbol} not found")
+        raise HTTPException(
+            status_code=404, 
+            detail=f"Company {symbol} not found"
+        )
     
     db.delete(db_company)
     db.commit()
@@ -122,12 +138,15 @@ def delete_company(symbol: str, db: Session = Depends(get_db)):
     return {"message": f"Company {symbol} deleted successfully"}
 
 # ============================================================================
-# ANALYTICS & KPI ENDPOINTS (This is where you STAND OUT!)
+# ANALYTICS & KPI ENDPOINTS
 # ============================================================================
 
 @app.get("/analytics/portfolio/average-esg", tags=["Analytics"])
 def get_portfolio_average_esg(
-    symbols: str = Query(..., description="Comma-separated company symbols, e.g., AAPL,MSFT,GOOGL"),
+    symbols: str = Query(
+        ..., 
+        description="Comma-separated company symbols, e.g., AAPL,MSFT,GOOGL"
+    ),
     db: Session = Depends(get_db)
 ):
     """
@@ -137,7 +156,6 @@ def get_portfolio_average_esg(
     """
     symbol_list = [s.strip().upper() for s in symbols.split(',')]
     
-    # Get latest ESG scores with market cap
     results = db.query(
         models.Company.symbol,
         models.Company.name,
@@ -148,13 +166,18 @@ def get_portfolio_average_esg(
     ).all()
     
     if not results:
-        raise HTTPException(status_code=404, detail="No ESG data found for provided symbols")
+        raise HTTPException(
+            status_code=404, 
+            detail="No ESG data found for provided symbols"
+        )
     
-    # Calculate weighted average
     total_market_cap = sum(r.market_cap for r in results if r.market_cap)
     
     if total_market_cap == 0:
-        raise HTTPException(status_code=400, detail="Invalid market cap data")
+        raise HTTPException(
+            status_code=400, 
+            detail="Invalid market cap data"
+        )
     
     weighted_score = sum(
         (r.total_esg_score or 0) * (r.market_cap / total_market_cap)
@@ -171,7 +194,7 @@ def get_portfolio_average_esg(
                 "symbol": r.symbol,
                 "name": r.name,
                 "esg_score": r.total_esg_score,
-                "weight": round((r.market_cap / total_market_cap) * 100, 2)
+                "weight_percent": round((r.market_cap / total_market_cap) * 100, 2)
             }
             for r in results
         ]
@@ -234,10 +257,10 @@ def get_sector_esg_distribution(db: Session = Depends(get_db)):
         "sectors": [
             {
                 "sector": r.sector,
-                "average_esg_score": round(r.avg_esg, 2),
-                "average_environmental": round(r.avg_environmental, 2),
-                "average_social": round(r.avg_social, 2),
-                "average_governance": round(r.avg_governance, 2),
+                "average_esg_score": round(r.avg_esg, 2) if r.avg_esg else None,
+                "average_environmental": round(r.avg_environmental, 2) if r.avg_environmental else None,
+                "average_social": round(r.avg_social, 2) if r.avg_social else None,
+                "average_governance": round(r.avg_governance, 2) if r.avg_governance else None,
                 "num_companies": r.company_count
             }
             for r in results
@@ -246,7 +269,10 @@ def get_sector_esg_distribution(db: Session = Depends(get_db)):
 
 @app.get("/analytics/risk-flags", tags=["Analytics"])
 def get_risk_flags(
-    controversy_threshold: float = Query(5.0, description="Controversy score threshold"),
+    controversy_threshold: float = Query(
+        5.0, 
+        description="Controversy score threshold"
+    ),
     db: Session = Depends(get_db)
 ):
     """Identify companies with ESG risk flags"""

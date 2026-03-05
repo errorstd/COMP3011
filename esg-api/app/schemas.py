@@ -1,23 +1,29 @@
-# Pydantic models for the API
+"""
+Pydantic Schemas for Request/Response Validation
+"""
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime, date
 from typing import Optional, List
 
+# ============================================================================
+# COMPANY SCHEMAS
+# ============================================================================
+
 class CompanyBase(BaseModel):
-    symbol: str
-    name: str
-    sector: Optional[str] = None
-    industry: Optional[str] = None
-    market_cap: Optional[int] = None
+    symbol: str = Field(..., max_length=10, description="Stock ticker symbol")
+    name: str = Field(..., max_length=255, description="Company name")
+    sector: Optional[str] = Field(None, max_length=100)
+    industry: Optional[str] = Field(None, max_length=100)
+    market_cap: Optional[int] = Field(None, description="Market capitalization in USD")
 
 class CompanyCreate(CompanyBase):
     pass
 
 class CompanyUpdate(BaseModel):
-    name: Optional[str] = None
-    sector: Optional[str] = None
-    industry: Optional[str] = None
+    name: Optional[str] = Field(None, max_length=255)
+    sector: Optional[str] = Field(None, max_length=100)
+    industry: Optional[str] = Field(None, max_length=100)
     market_cap: Optional[int] = None
 
 class Company(CompanyBase):
@@ -27,17 +33,52 @@ class Company(CompanyBase):
     class Config:
         orm_mode = True
 
+# ============================================================================
+# ESG SCORE SCHEMAS
+# ============================================================================
+
 class ESGScoreBase(BaseModel):
-    environmental_score: Optional[float]
-    social_score: Optional[float]
-    governance_score: Optional[float]
-    total_esg_score: Optional[float]
-    carbon_intensity: Optional[float]
-    controversy_score: Optional[float]
+    environmental_score: Optional[float] = None
+    social_score: Optional[float] = None
+    governance_score: Optional[float] = None
+    total_esg_score: Optional[float] = None
+    carbon_intensity: Optional[float] = None
+    controversy_score: Optional[float] = None
     date: date
 
+class ESGScoreResponse(ESGScoreBase):
+    id: int
+    company_id: int
+    
+    class Config:
+        orm_mode = True
+
+# ============================================================================
+# FINANCIAL METRIC SCHEMAS
+# ============================================================================
+
+class FinancialMetricBase(BaseModel):
+    pe_ratio: Optional[float] = None
+    eps: Optional[float] = None
+    revenue: Optional[int] = None
+    profit_margin: Optional[float] = None
+    debt_to_equity: Optional[float] = None
+    date: date
+
+class FinancialMetricResponse(FinancialMetricBase):
+    id: int
+    company_id: int
+    
+    class Config:
+        orm_mode = True
+
+# ============================================================================
+# COMPANY DETAIL (with relationships)
+# ============================================================================
+
 class CompanyDetail(Company):
-    esg_scores: List[ESGScoreBase] = []
+    esg_scores: List[ESGScoreResponse] = []
+    financial_metrics: List[FinancialMetricResponse] = []
     
     class Config:
         orm_mode = True

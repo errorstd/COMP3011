@@ -1,6 +1,6 @@
 """
 Stock Valuation & Risk Analytics Data Import
-Focuses on RELIABLE Yahoo Finance data (no ESG dependency)
+EXPANDED: 150 companies across multiple categories
 """
 
 import sys
@@ -18,13 +18,40 @@ from app.database import SessionLocal
 from app.models import Company, FinancialMetric, StockPrice
 import time
 
-# 50 companies across sectors (ESG removed - financial data only)
+# 🎯 150 COMPANIES ACROSS 8 CATEGORIES
 COMPANIES = {
-    'Technology': ['AAPL', 'MSFT', 'GOOGL', 'META', 'NVDA', 'TSLA', 'AMD', 'INTC', 'CRM', 'ORCL'],
-    'Finance': ['JPM', 'BAC', 'WFC', 'GS', 'MS', 'C', 'AXP', 'BLK', 'SCHW', 'USB'],
-    'Healthcare': ['JNJ', 'UNH', 'PFE', 'ABBV', 'TMO', 'ABT', 'MRK', 'LLY', 'BMY', 'AMGN'],
-    'Energy': ['XOM', 'CVX', 'COP', 'SLB', 'EOG', 'MPC', 'PSX', 'VLO', 'OXY', 'HAL'],
-    'Consumer': ['AMZN', 'WMT', 'HD', 'PG', 'KO', 'PEP', 'COST', 'NKE', 'MCD', 'SBUX']
+    'Technology': [
+        'AAPL', 'MSFT', 'GOOGL', 'META', 'NVDA', 'TSLA', 'AMD', 'INTC', 'CRM', 'ORCL',
+        'ADBE', 'CSCO', 'AVGO', 'QCOM', 'TXN', 'AMAT', 'MU', 'LRCX', 'KLAC', 'SNPS'
+    ],
+    'Finance': [
+        'JPM', 'BAC', 'WFC', 'GS', 'MS', 'C', 'AXP', 'BLK', 'SCHW', 'USB',
+        'PNC', 'TFC', 'COF', 'BK', 'STT', 'FITB', 'HBAN', 'RF', 'CFG', 'KEY'
+    ],
+    'Healthcare': [
+        'JNJ', 'UNH', 'PFE', 'ABBV', 'TMO', 'ABT', 'MRK', 'LLY', 'BMY', 'AMGN',
+        'GILD', 'CVS', 'CI', 'REGN', 'ISRG', 'VRTX', 'ZTS', 'BIIB', 'ILMN', 'MRNA'
+    ],
+    'Energy': [
+        'XOM', 'CVX', 'COP', 'SLB', 'EOG', 'MPC', 'PSX', 'VLO', 'OXY', 'HAL',
+        'KMI', 'WMB', 'HES', 'DVN', 'FANG', 'MRO', 'APA', 'CTRA', 'BKR', 'NOV'
+    ],
+    'Consumer': [
+        'AMZN', 'WMT', 'HD', 'PG', 'KO', 'PEP', 'COST', 'NKE', 'MCD', 'SBUX',
+        'TGT', 'LOW', 'DG', 'DLTR', 'ROST', 'TJX', 'BBY', 'ULTA', 'LULU', 'EBAY'
+    ],
+    'Green Energy': [
+        'NEE', 'DUK', 'SO', 'D', 'AEP', 'EXC', 'SRE', 'XEL', 'ED', 'ES',
+        'ENPH', 'SEDG', 'FSLR', 'RUN', 'PLUG', 'BE', 'NOVA', 'VWDRY', 'CSIQ', 'JKS'
+    ],
+    'Data & AI': [
+        'SNOW', 'PLTR', 'NET', 'DDOG', 'MDB', 'CRWD', 'ZS', 'OKTA', 'TEAM', 'WDAY',
+        'SPLK', 'FTNT', 'PANW', 'CYBR', 'TENB', 'VRNS', 'S', 'ZI', 'ESTC', 'CFLT'
+    ],
+    'New Tech': [
+        'UBER', 'LYFT', 'ABNB', 'DASH', 'COIN', 'RBLX', 'U', 'PATH', 'HOOD', 'SOFI',
+        'AFRM', 'SQ', 'PYPL', 'SHOP', 'ROKU', 'PINS', 'SNAP', 'TWLO', 'ZM', 'DOCU'
+    ]
 }
 
 def convert_numpy(value):
@@ -106,7 +133,7 @@ def import_stock_prices(symbol: str, company_id: int, db: Session):
     """Import 90 days of historical price data"""
     try:
         ticker = yf.Ticker(symbol)
-        hist = ticker.history(period="3mo")  # 90 days for better analytics
+        hist = ticker.history(period="3mo")
         
         if hist.empty:
             print(f"    ⚠️  No price data for {symbol}")
@@ -146,7 +173,7 @@ def run_full_import():
     """Run complete data import"""
     
     print("\n" + "="*70)
-    print("🚀 Stock Valuation & Risk Analytics - Data Import")
+    print("🚀 Stock Valuation & Risk Analytics - EXPANDED Data Import")
     print("="*70 + "\n")
     
     total_companies = sum(len(symbols) for symbols in COMPANIES.values())
@@ -155,7 +182,7 @@ def run_full_import():
     failed = 0
     
     for sector, symbols in COMPANIES.items():
-        print(f"\n📊 Importing {sector} sector...")
+        print(f"\n📊 Importing {sector} sector... ({len(symbols)} companies)")
         
         for symbol in symbols:
             current += 1
@@ -190,7 +217,8 @@ def run_full_import():
     print(f"   Total companies: {total_companies}")
     print(f"   ✅ Successful: {successful}")
     print(f"   ❌ Failed: {failed}")
-    print(f"\n🎯 Focus: Stock Valuation & Risk Analytics (Financial Data Only)")
+    print(f"   Success rate: {(successful/total_companies*100):.1f}%")
+    print(f"\n🎯 Categories: {', '.join(COMPANIES.keys())}")
 
 if __name__ == "__main__":
     run_full_import()

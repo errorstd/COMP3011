@@ -116,6 +116,11 @@ Expected output:
 ```
 Creating all database tables...
 ✅ Database tables created successfully!
+
+Tables created:
+  - companies
+  - financial_metrics
+  - stock_prices
 ```
 
 ### 6. Import Stock Data
